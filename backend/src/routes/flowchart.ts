@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
-import { generateDiagram, editDiagram, classifyIntent, streamGenerateDiagram, streamEditDiagram } from '../services/flowchartService';
+import { generateDiagram, editDiagram, classifyIntent, getClarifyingQuestions, streamGenerateDiagram, streamEditDiagram } from '../services/flowchartService';
 import { extractText } from '../services/documentParser';
 import { ChatMessage } from '../models/Flowchart';
 
@@ -41,6 +41,21 @@ router.post('/edit', async (req: Request, res: Response) => {
   } catch (err: unknown) {
     console.error('Edit error:', err);
     res.status(500).json({ error: 'Failed to edit diagram', details: String(err) });
+  }
+});
+
+// POST /api/flowchart/clarify
+router.post('/clarify', async (req: Request, res: Response) => {
+  try {
+    const { prompt, chatHistory = [] }: { prompt: string; chatHistory: ChatMessage[] } = req.body;
+    if (!prompt?.trim()) {
+      return res.status(400).json({ error: 'prompt is required' });
+    }
+    const questions = await getClarifyingQuestions(prompt, chatHistory);
+    res.json({ questions });
+  } catch (err: unknown) {
+    console.error('Clarify error:', err);
+    res.status(500).json({ questions: [] }); // graceful fallback
   }
 });
 

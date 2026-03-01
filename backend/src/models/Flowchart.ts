@@ -61,3 +61,9 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
 }
+
+export interface ClarifyQuestion {
+  id: string;
+  question: string;
+  options: string[];
+}

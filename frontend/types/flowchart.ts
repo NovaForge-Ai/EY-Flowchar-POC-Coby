@@ -57,11 +57,18 @@ export type StreamEvent =
   | { type: 'complete'; graph: DiagramGraph }
   | { type: 'error'; message: string };
 
+export interface ClarifyQuestion {
+  id: string;
+  question: string;
+  options: string[];
+}
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
   isLoading?: boolean;
-  thinkingText?: string;   // persisted reasoning log shown as collapsible after completion
+  thinkingText?: string;        // persisted reasoning log shown as collapsible after completion
+  clarifyQuestions?: ClarifyQuestion[];  // set while awaiting user clarification answers
 }

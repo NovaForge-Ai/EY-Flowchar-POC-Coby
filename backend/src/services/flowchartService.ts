@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { DiagramGraph, ChatMessage, IntentType, StreamEvent } from '../models/Flowchart';
+import { DiagramGraph, ChatMessage, IntentType, StreamEvent, ClarifyQuestion } from '../models/Flowchart';
 
 /**
  * Robustly extract a JSON object from model output that may contain:
@@ -84,6 +84,26 @@ const INTENT_SYSTEM_PROMPT = `Classify the user's message intent for a flowchart
 - export_request: user wants to export or download the diagram
 - clarification: user is asking a question or providing more context`;
 
+const CLARIFY_SYSTEM_PROMPT = `You are a flowchart design assistant. Given a user's request to create a flowchart, generate exactly 3 targeted clarifying questions to remove ambiguity before drawing.
+
+Return ONLY a valid JSON object — no markdown, no explanation, no code fences:
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Specific question about their domain?",
+      "options": ["Option A", "Option B", "Option C", "Option D"]
+    }
+  ]
+}
+
+Rules:
+- Questions must be SPECIFIC to the user's domain and context — never generic
+- Each question must have exactly 3–4 short options (max 6 words each)
+- Cover the 3 most impactful unknowns: scope/paths, detail level, key stakeholders or edge cases
+- Do NOT ask about anything clearly stated in the prompt
+- Return ONLY the JSON object, nothing else`;
+
 // ── Shared streaming core ────────────────────────────────────────────────────
 
 async function* streamCompletion(
@@ -151,6 +171,29 @@ async function* streamCompletion(
 }
 
 // ── Public API ───────────────────────────────────────────────────────────────
+
+export async function getClarifyingQuestions(
+  prompt: string,
+  chatHistory: ChatMessage[]
+): Promise<ClarifyQuestion[]> {
+  const response = await getClient().chat.completions.create({
+    model: MODEL,
+    max_tokens: 1024,
+    messages: [
+      { role: 'system', content: CLARIFY_SYSTEM_PROMPT },
+      ...chatHistory.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
+      { role: 'user', content: prompt },
+    ],
+  });
+
+  const raw = (response.choices[0].message.content || '').trim();
+  try {
+    const parsed = JSON.parse(extractJSON(raw));
+    return Array.isArray(parsed.questions) ? parsed.questions : [];
+  } catch {
+    return []; // graceful fallback — caller skips clarification if empty
+  }
+}
 
 export async function classifyIntent(message: string): Promise<IntentType> {
   const response = await getClient().chat.completions.create({

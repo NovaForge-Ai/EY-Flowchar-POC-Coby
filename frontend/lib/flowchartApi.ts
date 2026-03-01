@@ -1,4 +1,4 @@
-import { DiagramGraph, ChatMessage, IntentType, StreamEvent } from '@/types/flowchart';
+import { DiagramGraph, ChatMessage, IntentType, StreamEvent, ClarifyQuestion } from '@/types/flowchart';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
@@ -66,6 +66,24 @@ export const flowchartAPI = {
     }
     const data = await res.json();
     return data.graph;
+  },
+
+  async getClarifyingQuestions(
+    prompt: string,
+    chatHistory: Pick<ChatMessage, 'role' | 'content'>[]
+  ): Promise<ClarifyQuestion[]> {
+    try {
+      const res = await fetch(`${BASE_URL}/flowchart/clarify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, chatHistory }),
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return Array.isArray(data.questions) ? data.questions : [];
+    } catch {
+      return []; // always graceful — caller skips clarification if empty
+    }
   },
 
   async classifyIntent(message: string): Promise<IntentType> {
