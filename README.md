@@ -1,105 +1,82 @@
-# Agentic Workbench
+# Flowchart Agent
 
-A collaborative developer environment where humans and AI agents work together on tasks. This is a full UI mockup demonstrating all features and user flows.
+An AI-powered flowchart generator. Describe a process in plain language, answer a few clarifying questions, and get a clean, interactive diagram — no diagram syntax required.
 
 ## Features
 
-- **Task Management**: Kanban-style task board with task creation, assignment, and tracking
-- **Agent System**: Multiple AI agents with different personalities and task subscriptions
-- **Live Session Shadowing**: Real-time terminal sessions with observe/guide modes
-- **Human-in-the-Loop Review**: Mandatory review gates with code diff viewing and approval controls
-- **Timeline & Activity Tracking**: Complete audit trail of all actions and decisions
-- **Workspace Layout**: Cursor-like 4-pane interface with file tree, editor, agent console, and bottom panel
+- **Natural language input**: Describe any process and the agent generates a flowchart
+- **Clarifying questions**: The agent asks targeted MCQ questions before generating to get the diagram right
+- **Live streaming**: Watch nodes and edges appear in real-time as the agent reasons
+- **Interactive canvas**: Pan, zoom, and inspect nodes on a React Flow canvas
+- **Session history**: Browse and restore previous diagrams from the session drawer
+- **Undo / Redo**: `Cmd+Z` / `Cmd+Shift+Z` to step through diagram history
+- **Export**: Download the diagram as PNG or copy the underlying JSON
 
 ## Tech Stack
 
-- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS
+- **Frontend**: Next.js, React, TypeScript, Tailwind CSS, React Flow
 - **Backend**: Express.js, TypeScript
-- **State Management**: Zustand
-- **Code Editor**: Monaco Editor
-- **Terminal**: xterm.js
-- **Icons**: Lucide React
+- **LLM**: NVIDIA NIM (configurable via `LLM_API_KEY`)
+- **State**: Zustand
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 18+
 
 ### Installation
 
-1. Install frontend dependencies:
 ```bash
-cd frontend
-npm install
+# Frontend
+cd frontend && npm install
+
+# Backend
+cd backend && npm install
 ```
 
-2. Install backend dependencies:
-```bash
-cd backend
-npm install
+### Configuration
+
+Copy `backend/.env.example` to `backend/.env` and set your key:
+
+```
+LLM_API_KEY=your_nvidia_nim_api_key
 ```
 
-### Running the Application
+### Running
 
-1. Start the backend server:
 ```bash
-cd backend
-npm run dev
+# Terminal 1 — backend (http://localhost:3001)
+cd backend && npm run dev
+
+# Terminal 2 — frontend (http://localhost:3000)
+cd frontend && npm run dev
 ```
-
-The backend will run on `http://localhost:3001`
-
-2. Start the frontend development server:
-```bash
-cd frontend
-npm run dev
-```
-
-The frontend will run on `http://localhost:3000`
 
 ## Project Structure
 
 ```
 ey-jumpstart/
-├── frontend/          # Next.js application
-│   ├── app/          # App Router pages
-│   ├── components/   # React components
-│   ├── store/        # Zustand state management
-│   ├── types/        # TypeScript type definitions
-│   └── lib/          # Utilities and API client
-├── backend/          # Express API server
-│   ├── src/
-│   │   ├── routes/   # API routes
-│   │   ├── services/ # Business logic
-│   │   ├── models/   # Data models
-│   │   └── data/     # Mock data
-└── README.md
+├── frontend/
+│   ├── app/                  # Next.js App Router
+│   ├── components/
+│   │   └── flowchart/        # Chat panel, canvas, streaming, session drawer
+│   ├── store/                # Zustand store (flowchart state)
+│   └── types/                # TypeScript types
+└── backend/
+    └── src/
+        ├── routes/           # /api/flowchart, /api/clarify
+        └── services/         # LLM streaming logic
 ```
 
-## User Flows
+## Usage
 
-1. **Task Creation & Dispatch**: Create tasks from the Task Board, agents automatically pick them up
-2. **Monitoring Task Execution**: View task details, timeline, and artifacts
-3. **Live Session Shadowing**: Attach to agent sessions, switch between observe/guide modes
-4. **HITL Review Gate**: Review code diffs, test results, and approve or request changes
-5. **Post-Mortem Analysis**: View complete activity timeline and audit trail
-6. **Agent Management**: View agent profiles, performance, and subscription rules
-
-## Mock Data
-
-The application uses comprehensive mock data to demonstrate all features:
-- Sample tasks in various states (backlog, in progress, review, done)
-- Multiple agents with different personalities
-- Simulated execution timelines
-- Code diffs and test results
-- Terminal session history
-
-## Development
-
-This is a UI mockup - all data is stored in-memory and resets on server restart. The backend simulates a message bus and agent behavior for demonstration purposes.
+1. Open `http://localhost:3000`
+2. Type a process description in the chat (e.g. *"user login flow with MFA"*)
+3. Answer the clarifying questions
+4. The diagram streams in on the right — pan and zoom to explore
+5. Iterate by sending follow-up messages or start fresh with a new session
 
 ## License
 
 ISC
-

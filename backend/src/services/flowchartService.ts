@@ -52,8 +52,11 @@ Schema:
   "id": "unique-string-id",
   "title": "Diagram title",
   "type": "process_flow|decision_tree|swimlane|dfd|entity_relationship|network|timeline",
+  "sections": [
+    { "id": "s1", "label": "Phase 1: Discovery", "description": "optional short description", "color": "indigo" }
+  ],
   "nodes": [
-    { "id": "n1", "label": "Short label (max 8 words)", "type": "process|decision|start|end|io|database|external|swimlane_header" }
+    { "id": "n1", "label": "Short label (max 8 words)", "type": "process|decision|start|end|io|database|external|swimlane_header", "section": "s1" }
   ],
   "edges": [
     { "id": "e1", "source": "n1", "target": "n2", "label": "optional", "type": "default|conditional|data_flow" }
@@ -64,15 +67,23 @@ Schema:
 Rules:
 - Choose the most appropriate diagram type based on the description
 - Use concise node labels (max 8 words)
-- Every node and edge must have a unique string ID (n1, n2... e1, e2...)
+- Every node, edge, and section must have a unique string ID (n1, n2... e1, e2... s1, s2...)
 - Start nodes have type "start", end nodes have type "end", decision points have type "decision"
+- SECTIONS — group nodes into logical phases, swimlanes, or categories:
+  * For diagrams with 8+ nodes or distinct stages/phases, ALWAYS create sections
+  * Section colors (pick distinct ones per section): indigo, teal, amber, rose, green, sky, violet, orange
+  * Set the "section" field on each node to its section's id
+  * Edges can freely cross between sections — this is expected and encouraged
+  * For simple diagrams with fewer than 6 nodes, omit the sections array entirely
 - Return ONLY the JSON object, nothing else`;
 
 const EDIT_SYSTEM_PROMPT = `You are editing an existing flowchart based on a user instruction. Return ONLY the updated DiagramGraph JSON — no markdown, no explanation, no code fences.
 
 Rules:
 - Apply minimal changes — only modify what the user explicitly asked for
-- Preserve ALL existing node IDs exactly as-is
+- Preserve ALL existing node IDs and section IDs exactly as-is
+- When adding new nodes, assign them to the appropriate existing section if sections are present
+- Only add or remove sections if the user explicitly requests it
 - Increment the version number in metadata by 1
 - Update metadata.createdAt to current ISO timestamp
 - Return ONLY the complete updated JSON object`;

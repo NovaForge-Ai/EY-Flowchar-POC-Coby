@@ -26,6 +26,14 @@ export interface DiagramNode {
   style?: Record<string, string>;
   metadata?: Record<string, unknown>;
   position?: { x: number; y: number };
+  section?: string;
+}
+
+export interface DiagramSection {
+  id: string;
+  label: string;
+  description?: string;
+  color?: 'indigo' | 'teal' | 'amber' | 'rose' | 'green' | 'sky' | 'violet' | 'orange';
 }
 
 export interface DiagramEdge {
@@ -42,6 +50,7 @@ export interface DiagramGraph {
   type: DiagramType;
   nodes: DiagramNode[];
   edges: DiagramEdge[];
+  sections?: DiagramSection[];
   metadata: {
     createdAt: string;
     version: number;

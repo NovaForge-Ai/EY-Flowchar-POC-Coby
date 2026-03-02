@@ -11,9 +11,7 @@ interface ClarifyingQuestionsProps {
 }
 
 export default function ClarifyingQuestions({ questions, onSubmit, onSkip }: ClarifyingQuestionsProps) {
-  // answers: questionId → selected string (option text or custom input)
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  // which questions have the "other" text field open
   const [customOpen, setCustomOpen] = useState<Record<string, boolean>>({});
   const [customText, setCustomText] = useState<Record<string, string>>({});
 
@@ -29,7 +27,6 @@ export default function ClarifyingQuestions({ questions, onSubmit, onSkip }: Cla
     const opening = !customOpen[qId];
     setCustomOpen((prev) => ({ ...prev, [qId]: opening }));
     if (!opening) {
-      // Closing custom input — clear the custom answer for this question
       const newAnswers = { ...answers };
       if (customText[qId]) {
         newAnswers[qId] = customText[qId];
@@ -38,7 +35,6 @@ export default function ClarifyingQuestions({ questions, onSubmit, onSkip }: Cla
       }
       setAnswers(newAnswers);
     } else {
-      // Opening custom input — deselect any chip option
       const newAnswers = { ...answers };
       delete newAnswers[qId];
       setAnswers(newAnswers);
@@ -67,11 +63,11 @@ export default function ClarifyingQuestions({ questions, onSubmit, onSkip }: Cla
     <div className="max-w-[85%] space-y-3">
       {/* Header */}
       <div className="flex items-center gap-2 px-1">
-        <Sparkles size={13} className="text-amber-400 shrink-0" />
-        <span className="text-xs font-semibold text-amber-300">
+        <Sparkles size={13} className="text-indigo-400 shrink-0" />
+        <span className="text-xs font-semibold text-gray-700">
           A few quick questions before I draw
         </span>
-        <span className="text-xs text-gray-500 ml-auto">
+        <span className="text-xs text-gray-400 ml-auto">
           {answeredCount}/{questions.length}
         </span>
       </div>
@@ -84,15 +80,13 @@ export default function ClarifyingQuestions({ questions, onSubmit, onSkip }: Cla
         return (
           <div
             key={q.id}
-            className="rounded-xl border border-gray-700 bg-gray-800/60 px-3 py-3 space-y-2"
+            className="rounded-xl border border-gray-200 bg-white shadow-[0_1px_4px_rgba(0,0,0,0.06)] px-3 py-3 space-y-2"
           >
-            {/* Question text */}
-            <p className="text-xs font-medium text-gray-200 leading-snug">
-              <span className="text-gray-500 mr-1.5">Q{qi + 1}.</span>
+            <p className="text-xs font-medium text-gray-700 leading-snug">
+              <span className="text-gray-400 mr-1.5">Q{qi + 1}.</span>
               {q.question}
             </p>
 
-            {/* Option chips */}
             <div className="flex flex-wrap gap-1.5">
               {q.options.map((opt) => {
                 const isSelected = selected === opt && !isCustomOpen;
@@ -102,8 +96,8 @@ export default function ClarifyingQuestions({ questions, onSubmit, onSkip }: Cla
                     onClick={() => selectOption(q.id, opt)}
                     className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all ${
                       isSelected
-                        ? 'bg-blue-600 border-blue-500 text-white'
-                        : 'bg-gray-700/60 border-gray-600 text-gray-300 hover:border-blue-500 hover:text-gray-100'
+                        ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm'
+                        : 'bg-gray-50 border-gray-200 text-gray-600 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50'
                     }`}
                   >
                     {opt}
@@ -111,13 +105,12 @@ export default function ClarifyingQuestions({ questions, onSubmit, onSkip }: Cla
                 );
               })}
 
-              {/* "Other" toggle */}
               <button
                 onClick={() => toggleCustom(q.id)}
                 className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all flex items-center gap-1 ${
                   isCustomOpen
-                    ? 'bg-violet-600 border-violet-500 text-white'
-                    : 'bg-gray-700/60 border-gray-600 text-gray-400 hover:border-violet-500 hover:text-gray-200'
+                    ? 'bg-violet-100 border-violet-400 text-violet-700'
+                    : 'bg-gray-50 border-gray-200 text-gray-500 hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50'
                 }`}
               >
                 <Pencil size={9} />
@@ -125,7 +118,6 @@ export default function ClarifyingQuestions({ questions, onSubmit, onSkip }: Cla
               </button>
             </div>
 
-            {/* Custom text input */}
             {isCustomOpen && (
               <input
                 autoFocus
@@ -133,7 +125,7 @@ export default function ClarifyingQuestions({ questions, onSubmit, onSkip }: Cla
                 value={customText[q.id] || ''}
                 onChange={(e) => handleCustomChange(q.id, e.target.value)}
                 placeholder="Describe what you have in mind…"
-                className="w-full bg-gray-900 text-gray-200 placeholder-gray-500 text-xs rounded-lg px-3 py-1.5 border border-gray-600 focus:outline-none focus:border-violet-500"
+                className="w-full bg-gray-50 text-gray-800 placeholder-gray-400 text-xs rounded-lg px-3 py-1.5 border border-gray-200 focus:outline-none focus:border-violet-400 focus:ring-1 focus:ring-violet-200"
               />
             )}
           </div>
@@ -144,14 +136,14 @@ export default function ClarifyingQuestions({ questions, onSubmit, onSkip }: Cla
       <div className="flex items-center justify-between pt-1 px-0.5">
         <button
           onClick={onSkip}
-          className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+          className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
         >
           Skip & generate now
         </button>
         <button
           onClick={handleSubmit}
           disabled={!allAnswered}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm"
         >
           Generate diagram
           <ArrowRight size={12} />

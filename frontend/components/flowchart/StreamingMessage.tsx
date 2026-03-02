@@ -14,7 +14,6 @@ interface StreamingMessageProps {
   state: StreamingState;
 }
 
-// Contextual status messages that rotate during each phase
 const THINKING_LABELS = [
   'Analyzing your request…',
   'Understanding the process flow…',
@@ -47,6 +46,24 @@ const BUILDING_LABELS_EDIT = [
   'Finalizing updated diagram…',
 ];
 
+// Absolutely unnecessary facts. Delivered with full confidence.
+const FUN_FACTS = [
+  "Fun fact: The average consulting deck has 47 slides. Your flowchart has zero. You're already winning.",
+  'Fun fact: "Let\'s circle back" is consultant for "I need coffee before I can answer this."',
+  "Fun fact: Gantt charts were invented in 1910 — they've caused calendar anxiety ever since.",
+  'Fun fact: The word "synergy" peaked in 2003. We\'re still recovering.',
+  'Fun fact: 73% of consulting statistics are made up. Including this one.',
+  "Fun fact: The sticky note was invented by accident — much like most enterprise workflows.",
+  'Fun fact: BPMN 2.0 has 116 official symbols. You need maybe 6. Wise choice.',
+  'Fun fact: The average Big4 kickoff says "process" 4.7 times per minute. Someone counted.',
+  "Fun fact: A flowchart once saved a Fortune 500 company $4M. Probably. We can't verify this.",
+  'Fun fact: "Quick sync" is never quick. Your diagram, however, will be.',
+];
+
+/** Typewriter cadence — keep it slow so it feels deliberate */
+const TYPEWRITER_CHARS_PER_TICK = 6;
+const TYPEWRITER_INTERVAL_MS = 40;
+
 function useRotatingLabel(labels: string[], intervalMs = 2200): string {
   const [idx, setIdx] = useState(0);
   useEffect(() => {
@@ -59,52 +76,61 @@ function useRotatingLabel(labels: string[], intervalMs = 2200): string {
 export default function StreamingMessage({ state }: StreamingMessageProps) {
   const { phase, thinkingText, nodeCount, isEdit } = state;
   const [reasoningOpen, setReasoningOpen] = useState(true);
+  const [displayedChars, setDisplayedChars] = useState(0);
   const reasoningRef = useRef<HTMLDivElement>(null);
 
   const thinkingLabel = useRotatingLabel(isEdit ? THINKING_LABELS_EDIT : THINKING_LABELS);
   const buildingLabel = useRotatingLabel(isEdit ? BUILDING_LABELS_EDIT : BUILDING_LABELS);
+  const funFact = useRotatingLabel(FUN_FACTS, 4500);
 
-  // Auto-scroll reasoning pane as text streams in
+  // Typewriter effect — even if we have the full text, reveal it slowly
+  useEffect(() => {
+    if (displayedChars >= thinkingText.length) return;
+    const t = setTimeout(
+      () => setDisplayedChars((c) => Math.min(c + TYPEWRITER_CHARS_PER_TICK, thinkingText.length)),
+      TYPEWRITER_INTERVAL_MS
+    );
+    return () => clearTimeout(t);
+  }, [displayedChars, thinkingText]);
+
+  // Auto-scroll as typewriter advances
   useEffect(() => {
     if (reasoningRef.current) {
       reasoningRef.current.scrollTop = reasoningRef.current.scrollHeight;
     }
-  }, [thinkingText]);
+  }, [displayedChars]);
+
+  const visibleThinkingText = thinkingText.slice(0, displayedChars);
 
   return (
     <div className="space-y-2 max-w-[85%]">
-      {/* ── Thinking phase block ─────────────────────────────── */}
+      {/* Thinking block */}
       {(phase === 'thinking' || thinkingText) && (
-        <div className="rounded-lg border border-violet-800/50 bg-violet-950/40 overflow-hidden">
-          {/* Header */}
+        <div className="rounded-xl border border-violet-200 bg-violet-50 overflow-hidden">
           <button
             onClick={() => setReasoningOpen((o) => !o)}
-            className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-violet-900/20 transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-1.5 text-left hover:bg-violet-100/60 transition-colors"
           >
             <Brain
               size={13}
-              className={`text-violet-400 shrink-0 ${phase === 'thinking' ? 'animate-pulse' : ''}`}
+              className={`text-violet-500 shrink-0 ${phase === 'thinking' ? 'animate-pulse' : ''}`}
             />
-            <span className="text-xs font-medium text-violet-300 flex-1 truncate">
-              {phase === 'thinking' ? thinkingLabel : (isEdit ? 'Edit reasoning' : 'Diagram reasoning')}
+            <span className="text-xs font-medium text-violet-600 flex-1 truncate">
+              {phase === 'thinking'
+                ? thinkingLabel
+                : isEdit ? 'Edit reasoning' : 'Diagram reasoning'}
             </span>
-            {reasoningOpen ? (
-              <ChevronDown size={12} className="text-violet-500 shrink-0" />
-            ) : (
-              <ChevronRight size={12} className="text-violet-500 shrink-0" />
-            )}
+            {reasoningOpen
+              ? <ChevronDown size={12} className="text-violet-400 shrink-0" />
+              : <ChevronRight size={12} className="text-violet-400 shrink-0" />}
           </button>
 
-          {/* Reasoning text */}
-          {reasoningOpen && thinkingText && (
-            <div
-              ref={reasoningRef}
-              className="px-3 pb-3 max-h-[140px] overflow-y-auto"
-            >
-              <p className="text-[11px] text-violet-300/70 leading-relaxed whitespace-pre-wrap font-mono">
-                {thinkingText}
-                {phase === 'thinking' && (
-                  <span className="inline-block w-1.5 h-3 bg-violet-400 ml-0.5 animate-pulse align-middle" />
+          {reasoningOpen && visibleThinkingText && (
+            <div ref={reasoningRef} className="px-3 pb-3 max-h-[140px] overflow-y-auto">
+              <p className="text-[11px] text-violet-600/80 leading-relaxed whitespace-pre-wrap font-mono">
+                {visibleThinkingText}
+                {phase === 'thinking' && displayedChars >= thinkingText.length && (
+                  <span className="inline-block w-1.5 h-3 bg-violet-500 ml-0.5 animate-pulse align-middle" />
                 )}
               </p>
             </div>
@@ -112,25 +138,30 @@ export default function StreamingMessage({ state }: StreamingMessageProps) {
         </div>
       )}
 
-      {/* ── Building phase block ──────────────────────────────── */}
+      {/* Building block */}
       {phase === 'building' && (
-        <div className="rounded-lg border border-blue-800/50 bg-blue-950/40 px-3 py-2.5 flex items-start gap-2.5">
-          <Hexagon
-            size={14}
-            className="text-blue-400 shrink-0 mt-0.5"
-            style={{ animation: 'spin 3s linear infinite' }}
-          />
-          <div className="space-y-1">
-            <p className="text-xs font-medium text-blue-300">
-              {isEdit ? 'Updating your diagram' : 'Building your flowchart'}
-            </p>
-            <p className="text-[11px] text-blue-400/70">{buildingLabel}</p>
-            {nodeCount > 0 && (
-              <p className="text-[11px] text-blue-500/60">
-                {nodeCount} element{nodeCount !== 1 ? 's' : ''} detected so far…
+        <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2.5 space-y-2">
+          <div className="flex items-start gap-2.5">
+            <Hexagon
+              size={14}
+              className="text-indigo-500 shrink-0 mt-0.5"
+              style={{ animation: 'spin 3s linear infinite' }}
+            />
+            <div className="space-y-0.5">
+              <p className="text-xs font-medium text-indigo-700">
+                {isEdit ? 'Updating your diagram' : 'Building your flowchart'}
               </p>
-            )}
+              <p className="text-[11px] text-indigo-500">{buildingLabel}</p>
+              {nodeCount > 0 && (
+                <p className="text-[11px] text-indigo-400">
+                  {nodeCount} element{nodeCount !== 1 ? 's' : ''} detected so far…
+                </p>
+              )}
+            </div>
           </div>
+          <p className="text-[10px] text-gray-400 italic border-t border-indigo-100 pt-1.5 leading-relaxed">
+            {funFact}
+          </p>
         </div>
       )}
     </div>

@@ -1,5 +1,5 @@
-import WorkspaceLayout from '@/components/workspace/WorkspaceLayout';
+import FlowchartWorkspace from '@/components/flowchart/FlowchartWorkspace';
 
 export default function Home() {
-  return <WorkspaceLayout />;
+  return <FlowchartWorkspace />;
 }

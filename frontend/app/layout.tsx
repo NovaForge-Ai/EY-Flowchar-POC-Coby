@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Agentic Workbench",
-  description: "A collaborative environment where humans and AI agents work together",
+  title: "Flowchart Agent",
+  description: "AI-powered flowchart generation from natural language",
 };
 
 export default function RootLayout({

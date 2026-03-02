@@ -31,14 +31,14 @@ export default function FlowchartWorkspace() {
   }, [handleKeyDown]);
 
   return (
-    <div className="flex h-screen bg-gray-950 overflow-hidden">
+    <div className="flex h-screen bg-slate-50 overflow-hidden">
       {/* Left pane — Chat */}
-      <div className="w-[380px] shrink-0 flex flex-col relative">
+      <div className="w-[380px] shrink-0 flex flex-col relative shadow-[1px_0_0_0_#e2e8f0]">
         <ChatPanel />
       </div>
 
       {/* Divider */}
-      <div className="w-px bg-gray-700 shrink-0" />
+      <div className="w-px bg-gray-200 shrink-0" />
 
       {/* Right pane — Canvas */}
       <div className="flex-1 flex flex-col min-w-0">
